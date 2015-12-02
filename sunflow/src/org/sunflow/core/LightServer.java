@@ -316,17 +316,18 @@ class LightServer {
             state.getInstance().prepareShadingState(state);
             Shader shader = getShader(state);
             if (shader == null) {
-                state.setResult(Color.BLACK);
+                state.setResult(Color.RED);
                 return state;
             }
             if (shadingCache != null) {
                 Color c = lookupShadingCache(state, shader);
                 if (c != null) {
-                    state.setResult(c);
+                	Color red = new Color(c.getRGB()[0], 0.0f, 0.0f);
+                    state.setResult(red);
                     return state;
                 }
             }
-            state.setResult(shader.getRadiance(state));
+            state.setResult(new Color(shader.getRadiance(state).getRGB()[0], 0.0f, 0.0f));
             if (shadingCache != null)
                 addShadingCache(state, shader, state.getResult());
             return state;
