@@ -1,7 +1,6 @@
 sunflow
 images
 !sunflow/src/org/sunflow/core/LightServer.java
-!sunflow/src/org/sunflow/core/camera/ChromaticAberrationLens.java
 
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
