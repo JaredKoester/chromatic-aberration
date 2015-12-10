@@ -26,6 +26,9 @@ class LightServer {
     private int maxReflectionDepth;
     private int maxRefractionDepth;
 
+    // wavelength
+    private int wavelength;
+    
     // indirect illumination
     private CausticPhotonMapInterface causticPhotonMap;
     private GIEngine giEngine;
@@ -66,6 +69,8 @@ class LightServer {
         maxReflectionDepth = 4;
         maxRefractionDepth = 4;
 
+        wavelength = 680;
+        
         causticPhotonMap = null;
         giEngine = null;
 
@@ -96,6 +101,8 @@ class LightServer {
         maxReflectionDepth = options.getInt("depths.reflection", maxReflectionDepth);
         maxRefractionDepth = options.getInt("depths.refraction", maxRefractionDepth);
         giEngine = GIEngineFactory.create(options);
+        wavelength = options.getInt("wavelength", wavelength);
+        System.out.println(wavelength);
         String caustics = options.getString("caustics", null);
         if (caustics == null || caustics.equals("none"))
             causticPhotonMap = null;
@@ -374,7 +381,7 @@ class LightServer {
     
     ShadingState getRadiance(float rx, float ry, int i, Ray r, IntersectionState istate) {
         scene.trace(r, istate);
-        float[] rgb = waveLengthToRGB(600);
+        float[] rgb = waveLengthToRGB(wavelength);
         if (istate.hit()) {
             ShadingState state = ShadingState.createState(istate, rx, ry, r, i, this);
             state.getInstance().prepareShadingState(state);
@@ -392,8 +399,7 @@ class LightServer {
                 }
             }
             Color radianceState = shader.getRadiance(state);
-            float red = radianceState.getRGB()[0]*rgb[0];
-            state.setResult(new Color(shader.getRadiance(state).getRGB()[0]*rgb[0], shader.getRadiance(state).getRGB()[1]*rgb[1], shader.getRadiance(state).getRGB()[2]*rgb[2]));
+            state.setResult(new Color(radianceState.getRGB()[0]*rgb[0], radianceState.getRGB()[1]*rgb[1], radianceState.getRGB()[2]*rgb[2]));
             if (shadingCache != null)
                 addShadingCache(state, shader, state.getResult());
             return state;
