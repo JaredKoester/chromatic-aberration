@@ -1,6 +1,14 @@
 sunflow
 images
 !sunflow/src/org/sunflow/core/LightServer.java
+!sunflow/src/org/sunflow/core/parser/SCParser.java
+!sunflow/src/org/sunflow/core/camera/ChromaticAberrationLens.java
+!ImageAggregator.java
+
+#eclipse
+.classpath
+.project
+bin
 
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
