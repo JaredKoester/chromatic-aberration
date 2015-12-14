@@ -26,6 +26,9 @@ class LightServer {
     private int maxReflectionDepth;
     private int maxRefractionDepth;
 
+    // wavelength
+    private int wavelength;
+    
     // indirect illumination
     private CausticPhotonMapInterface causticPhotonMap;
     private GIEngine giEngine;
@@ -62,10 +65,12 @@ class LightServer {
         shaderOverride = null;
         shaderOverridePhotons = false;
 
-        maxDiffuseDepth = 1;
+        maxDiffuseDepth = 5;
         maxReflectionDepth = 4;
         maxRefractionDepth = 4;
 
+        wavelength = 680;
+        
         causticPhotonMap = null;
         giEngine = null;
 
@@ -96,6 +101,8 @@ class LightServer {
         maxReflectionDepth = options.getInt("depths.reflection", maxReflectionDepth);
         maxRefractionDepth = options.getInt("depths.refraction", maxRefractionDepth);
         giEngine = GIEngineFactory.create(options);
+        wavelength = options.getInt("wavelength", wavelength);
+        System.out.println(wavelength);
         String caustics = options.getString("caustics", null);
         if (caustics == null || caustics.equals("none"))
             causticPhotonMap = null;
@@ -309,25 +316,90 @@ class LightServer {
 
     }
 
+    static private double Gamma = 0.80;
+    static private double IntensityMax = 1;
+
+    /** Taken from Earl F. Glynn's web page:
+    * <a href="http://www.efg2.com/Lab/ScienceAndEngineering/Spectra.htm">Spectra Lab Report</a>
+    * */
+    public static float[] waveLengthToRGB(double Wavelength){
+        double factor;
+        double Red,Green,Blue;
+
+        if((Wavelength >= 380) && (Wavelength<440)){
+            Red = -(Wavelength - 440) / (440 - 380);
+            Green = 0.0;
+            Blue = 1.0;
+        }else if((Wavelength >= 440) && (Wavelength<490)){
+            Red = 0.0;
+            Green = (Wavelength - 440) / (490 - 440);
+            Blue = 1.0;
+        }else if((Wavelength >= 490) && (Wavelength<510)){
+            Red = 0.0;
+            Green = 1.0;
+            Blue = -(Wavelength - 510) / (510 - 490);
+        }else if((Wavelength >= 510) && (Wavelength<580)){
+            Red = (Wavelength - 510) / (580 - 510);
+            Green = 1.0;
+            Blue = 0.0;
+        }else if((Wavelength >= 580) && (Wavelength<645)){
+            Red = 1.0;
+            Green = -(Wavelength - 645) / (645 - 580);
+            Blue = 0.0;
+        }else if((Wavelength >= 645) && (Wavelength<781)){
+            Red = 1.0;
+            Green = 0.0;
+            Blue = 0.0;
+        }else{
+            Red = 0.0;
+            Green = 0.0;
+            Blue = 0.0;
+        };
+
+        // Let the intensity fall off near the vision limits
+
+        if((Wavelength >= 380) && (Wavelength<420)){
+            factor = 0.3 + 0.7*(Wavelength - 380) / (420 - 380);
+        }else if((Wavelength >= 420) && (Wavelength<701)){
+            factor = 1.0;
+        }else if((Wavelength >= 701) && (Wavelength<781)){
+            factor = 0.3 + 0.7*(780 - Wavelength) / (780 - 700);
+        }else{
+            factor = 0.0;
+        };
+
+
+        float[] rgb = new float[3];
+
+        // Don't want 0^x = 1 for x <> 0
+        rgb[0] = (float) (Red==0.0 ? 0 : (IntensityMax * Math.pow(Red * factor, Gamma)));
+        rgb[1] = (float) (Green==0.0 ? 0 : (IntensityMax * Math.pow(Green * factor, Gamma)));
+        rgb[2] = (float) (Blue==0.0 ? 0 : (IntensityMax * Math.pow(Blue * factor, Gamma)));
+
+        return rgb;
+    }
+    
     ShadingState getRadiance(float rx, float ry, int i, Ray r, IntersectionState istate) {
         scene.trace(r, istate);
+        float[] rgb = waveLengthToRGB(wavelength);
         if (istate.hit()) {
             ShadingState state = ShadingState.createState(istate, rx, ry, r, i, this);
             state.getInstance().prepareShadingState(state);
             Shader shader = getShader(state);
             if (shader == null) {
-                state.setResult(Color.RED);
+                state.setResult(new Color(rgb[0],rgb[1],rgb[2]));
                 return state;
             }
             if (shadingCache != null) {
                 Color c = lookupShadingCache(state, shader);
                 if (c != null) {
-                	Color red = new Color(c.getRGB()[0], 0.0f, 0.0f);
-                    state.setResult(red);
+                	Color newColor = new Color(c.getRGB()[0]*rgb[0],c.getRGB()[1]*rgb[1],c.getRGB()[2]*rgb[2]);
+                    state.setResult(newColor);
                     return state;
                 }
             }
-            state.setResult(new Color(shader.getRadiance(state).getRGB()[0], 0.0f, 0.0f));
+            Color radianceState = shader.getRadiance(state);
+            state.setResult(new Color(radianceState.getRGB()[0]*rgb[0], radianceState.getRGB()[1]*rgb[1], radianceState.getRGB()[2]*rgb[2]));
             if (shadingCache != null)
                 addShadingCache(state, shader, state.getResult());
             return state;
