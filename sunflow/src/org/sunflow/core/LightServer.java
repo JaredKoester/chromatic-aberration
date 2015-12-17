@@ -317,15 +317,16 @@ class LightServer {
     }
 
     static private double Gamma = 0.80;
-    static private double IntensityMax = 1;
+    static private double IntensityMax = 2;
 
     /** Taken from Earl F. Glynn's web page:
     * <a href="http://www.efg2.com/Lab/ScienceAndEngineering/Spectra.htm">Spectra Lab Report</a>
     * */
     public static float[] waveLengthToRGB(double Wavelength){
-        double factor;
-        double Red,Green,Blue;
-
+        
+    	double factor = 1;
+        double Red = 0,Green = 0,Blue = 0;
+        /*
         if((Wavelength >= 380) && (Wavelength<440)){
             Red = -(Wavelength - 440) / (440 - 380);
             Green = 0.0;
@@ -369,6 +370,20 @@ class LightServer {
         };
 
 
+        
+        */
+    	double t;
+        if ((Wavelength>=400.0)&&(Wavelength<410.0)) { t=(Wavelength-400.0)/(410.0-400.0); Red=    +(0.33*t)-(0.20*t*t); }
+   else if ((Wavelength>=410.0)&&(Wavelength<475.0)) { t=(Wavelength-410.0)/(475.0-410.0); Red=0.14         -(0.13*t*t); }
+   else if ((Wavelength>=545.0)&&(Wavelength<595.0)) { t=(Wavelength-545.0)/(595.0-545.0); Red=    +(1.98*t)-(     t*t); }
+   else if ((Wavelength>=595.0)&&(Wavelength<650.0)) { t=(Wavelength-595.0)/(650.0-595.0); Red=0.98+(0.06*t)-(0.40*t*t); }
+   else if ((Wavelength>=650.0)&&(Wavelength<700.0)) { t=(Wavelength-650.0)/(700.0-650.0); Red=0.65-(0.84*t)+(0.20*t*t); }
+        if ((Wavelength>=415.0)&&(Wavelength<475.0)) { t=(Wavelength-415.0)/(475.0-415.0); Green=             +(0.80*t*t); }
+   else if ((Wavelength>=475.0)&&(Wavelength<590.0)) { t=(Wavelength-475.0)/(590.0-475.0); Green=0.8 +(0.76*t)-(0.80*t*t); }
+   else if ((Wavelength>=585.0)&&(Wavelength<639.0)) { t=(Wavelength-585.0)/(639.0-585.0); Green=0.84-(0.84*t)           ; }
+        if ((Wavelength>=400.0)&&(Wavelength<475.0)) { t=(Wavelength-400.0)/(475.0-400.0); Blue=    +(2.20*t)-(1.50*t*t); }
+   else if ((Wavelength>=475.0)&&(Wavelength<560.0)) { t=(Wavelength-475.0)/(560.0-475.0); Blue=0.7 -(     t)+(0.30*t*t); }
+        
         float[] rgb = new float[3];
 
         // Don't want 0^x = 1 for x <> 0
