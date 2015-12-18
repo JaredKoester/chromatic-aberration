@@ -17,7 +17,7 @@ public class ChromaticAberrationLens implements CameraLens {
     
     public ChromaticAberrationLens() {
     	wavelength = 570;
-        focusDistance = (float)(19f+19f*wavelengthToFocusDistance(wavelength));
+        focusDistance = (double)(19d+19d*wavelengthToFocusDistance(wavelength));
         lensRadius = 0;
         fov = 90;
         aspect = 1;
@@ -26,7 +26,7 @@ public class ChromaticAberrationLens implements CameraLens {
     }
 
     private double wavelengthToFocusDistance(int wavelength2) {
-		double multiplier = 0.5;
+		double multiplier = 1;
 		return ((((double)wavelength2-570.0)/200.0)*multiplier);
 	}
 

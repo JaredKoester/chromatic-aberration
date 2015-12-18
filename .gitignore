@@ -1,6 +1,10 @@
 sunflow
 images
 !sunflow/src/org/sunflow/core/LightServer.java
+!spectrum.anim.java
+!spectrum.nocamera.sc
+!spectrum.setting.sc
+
 
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
